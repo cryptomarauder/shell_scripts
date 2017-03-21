@@ -26,10 +26,9 @@
 # the formatting fo the list like this example:
 #
 ACCOUNTS="
-coolcars
-goodeats
-foobarbaz
-boognish
+example
+ids
+todownload
 "
 
 
@@ -37,9 +36,10 @@ boognish
 #
 ROOTDIR=$('pwd')
 
-# The default is "" as in this script can be run without credentials if need be.
+# The default is "" as in this script can be run without credentials if need be. 
+# Format is "id:passwd"
 #
-CREDENTIALS="name:passwd"
+CREDENTIALS=""
 
 # Root directory for our loot.
 #
@@ -64,10 +64,11 @@ raid_loot() {
 	if [ ! -d $LOOTDIR/$_name_t ] ; then 
 		mkdir -p "$LOOTDIR/$_name_t"
 		_newid="yes"
+		_itemsindir="0"
 	else
 		# Since the dir exists set as not a new ID so we can update only new media.
 		_newid="no"
-		itemsindir="$(ls -AlFG "$LOOTDIR/$_name_t" | wc -l)" >> $LOOT_LOG 2>&1
+		_itemsindir="$(ls -AlFG "$LOOTDIR/$_name_t" | wc -l)" >> $LOOT_LOG 2>&1
 		echo "$LOOTDIR/$_name_t already exists, not doing mkdir." >> $LOOT_LOG 2>&1
 	fi
 
@@ -77,15 +78,21 @@ raid_loot() {
 	# TODO is -m broken? and what's the actual -n limit?
 
 	# Download only new content since we have this ID
-	if [ -n $CREDENTIALS ] && [ $itemsindir -ge 3 ] ; then 
-		nohup instaLooter -q -N -v -n 6000 -j 12 -c "$CREDENTIALS" "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
+	if [ -n "$CREDENTIALS" ]; then
+		if [ "$_itemsindir" -gt "2" ]; then 
+			echo "Updating $_name_t and using your credentials" >> $LOOT_LOG 2>&1
+			nohup instaLooter -q -N -v -n 6000 -j 12 -c "$CREDENTIALS" "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
+		fi
 
-	# Download all content since this is a new ID
-	elif [ $_newid == "yes" ] ; then
-		nohup instaLooter -q -v -n 6000 -j 12 -c "$CREDENTIALS" "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
+		# Download all content since this is a new ID
+		if [ "$_newid" = "yes" ] ; then
+			echo "Downloading $_name_t with credentials" >> $LOOT_LOG 2>&1
+			nohup instaLooter -q -v -n 6000 -j 12 -c "$CREDENTIALS" "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
+		fi
 
 	# Download as anonymous user
 	else	
+		echo "No credentials provided and this is a new ID we're downloading\n" >> $LOOT_LOG 2>&1
 		nohup instaLooter -q -v -n 6000 -j 12 "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
 	fi
 	# I think we're being limited... but something goes haywire after a few accounts are downloaded. ???
