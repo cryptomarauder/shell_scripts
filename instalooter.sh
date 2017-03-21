@@ -77,7 +77,7 @@ raid_loot() {
 	# TODO is -m broken? and what's the actual -n limit?
 
 	# Download only new content since we have this ID
-	if [ -n $CREDENTIALS ] && [ $itemsindir > 3 ] ; then 
+	if [ -n $CREDENTIALS ] && [ $itemsindir -ge 3 ] ; then 
 		nohup instaLooter -q -N -v -n 6000 -j 12 -c "$CREDENTIALS" "$_name_t" "$LOOTDIR/$_name_t" >> $LOOT_LOG 2>&1
 
 	# Download all content since this is a new ID
