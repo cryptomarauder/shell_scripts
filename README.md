@@ -1,2 +1,1 @@
-A place to share scripts others might want to find use for.
-          
+A place to share scripts others might find usful.
